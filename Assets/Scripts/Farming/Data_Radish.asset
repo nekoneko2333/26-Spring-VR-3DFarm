@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89b7130125fb9bb4d8b815796502e631, type: 3}
+  m_Name: Data_Radish
+  m_EditorClassIdentifier: 
+  cropName: "\u7EA2\u841D\u535C"
+  growTimePerStage: 1
+  growthStages:
+  - {fileID: 7243573242323377236, guid: 6a1c6adb7719ea7418a62bcd097c8a98, type: 3}
+  - {fileID: 7243573242323377236, guid: 9a6cb5a057e6933429d6cc5e4e104dc7, type: 3}
+  - {fileID: 7243573242323377236, guid: 9f1780f71fcabe143aa52f24e90e9113, type: 3}
