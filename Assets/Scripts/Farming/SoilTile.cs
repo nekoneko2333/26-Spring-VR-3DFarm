@@ -11,8 +11,6 @@ public enum SoilState
     Dead       // 植物死亡
 }
 
-// 2. 实现接口
-
 public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
 {
     public SoilState currentState = SoilState.Barren;
@@ -26,11 +24,11 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     public Material deadMat;
 
     [Header("当前选中的种子 (调试用)")]
-    public CropData selectedSeed; // 你可以直接从 Inspector 拖入不同的 SO 来换种
+    public CropData selectedSeed;
 
     public GameObject cropEntityPrefab;
     private MeshRenderer meshRenderer;
-    private CropEntity currentCropInstance; // 引用当前地里的作物
+    private CropEntity currentCropInstance;
 
     void Start()
     {
@@ -39,7 +37,6 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         if (TimeManager.Instance != null) TimeManager.Instance.OnDayPassed += OnDayPassed;
     }
 
-    // --- 核心交互逻辑 ---
     public void Interact()
     {
         switch (currentState)
@@ -72,22 +69,48 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     {
         if (selectedSeed == null) { Debug.LogWarning("手里没种子！"); return; }
 
+        if (selectedSeed.seedItem == null)
+        {
+            Debug.LogWarning("未配置种子ItemData！请联系同学C填入数据！");
+            return;
+        }
+
+        // 呼叫同学 C 的背包系统：扣除种子
+        if (InventoryManager.Instance.RemoveItem(selectedSeed.seedItem, 1) == false)
+        {
+            Debug.Log("背包里的种子不够了！无法种植！");
+            return;
+        }
+
         bool wasWet = (currentState == SoilState.TilledWet);
         currentState = wasWet ? SoilState.PlantedWet : SoilState.Planted;
 
-        GameObject newCropObj = Instantiate(cropEntityPrefab, transform.position + new Vector3(0, 0.1f, 0), Quaternion.identity, transform);
+        // ========== 核心修复：防止被压扁 ==========
+        // 去掉了原代码最后的 `transform` 参数。让植物独立存在于场景中，不再做土地的儿子。
+        // 这样土地就算压得再扁，也不会影响植物的形状了！
+        GameObject newCropObj = Instantiate(cropEntityPrefab, transform.position + new Vector3(0, 0.1f, 0), Quaternion.identity);
         newCropObj.transform.localScale = Vector3.one;
+        // =======================================
 
         currentCropInstance = newCropObj.GetComponent<CropEntity>();
         currentCropInstance.Initialize(selectedSeed);
         currentCropInstance.SetWatered(wasWet);
 
-        Debug.Log($"种下了：{selectedSeed.cropName}");
+        Debug.Log($"种下了：{selectedSeed.cropName}，已从背包扣除 1 个种子");
     }
 
     private void Harvest()
     {
-        Debug.Log($"收割了：{currentCropInstance.cropData.cropName}！金币+10 (占位)");
+        if (currentCropInstance.cropData.harvestItem != null)
+        {
+            InventoryManager.Instance.AddItem(currentCropInstance.cropData.harvestItem, 1);
+            Debug.Log($"收割了：{currentCropInstance.cropData.cropName}！已存入背包！");
+        }
+        else
+        {
+            Debug.LogWarning("未配置果实ItemData！收割了但没拿到东西！");
+        }
+
         Destroy(currentCropInstance.gameObject);
         currentCropInstance = null;
         currentState = SoilState.Barren;
@@ -111,25 +134,8 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         UpdateVisuals();
     }
 
-    // --- 状态显示 (无需UI系统，直接在屏幕画字) ---
-    void OnGUI()
-    {
-        // 获取土地在屏幕上的位置
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
-        if (screenPos.z > 0) // 确保在镜头内
-        {
-            Rect rect = new Rect(screenPos.x - 50, Screen.height - screenPos.y - 50, 150, 100);
-            string info = $"状态: {currentState}\n";
-            if (currentCropInstance != null)
-            {
-                info += $"品种: {currentCropInstance.cropData.cropName}\n";
-                info += currentCropInstance.IsMature() ? "<color=green>可收割!</color>" : "生长中...";
-            }
-            GUI.Label(rect, info);
-        }
-    }
+    // （已经删除了那个又大又糊的 OnGUI 方法，现在屏幕上清爽了！）
 
-    // --- 跨天逻辑保持不变 ---
     public void OnDayPassed(int currentDay)
     {
         if (currentState == SoilState.Planted)
@@ -147,7 +153,6 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         UpdateVisuals();
     }
 
-    // 接口兼容
     public void OnMinuteChanged(int totalMinutes) { }
     public void OnHourChanged(int currentHour) { }
     public string GetInteractPrompt() => "交互";
