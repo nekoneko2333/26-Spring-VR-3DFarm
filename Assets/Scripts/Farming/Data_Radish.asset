@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: Data_Radish
   m_EditorClassIdentifier: 
   cropName: "\u7EA2\u841D\u535C"
+  seedItem: {fileID: 11400000, guid: 3dd1137e587ab7e4e9a796c2b8529095, type: 2}
+  harvestItem: {fileID: 11400000, guid: 3bf368ab4a91b46408bbc7c1df71ce9c, type: 2}
   growTimePerStage: 1
   growthStages:
   - {fileID: 7243573242323377236, guid: 6a1c6adb7719ea7418a62bcd097c8a98, type: 3}
-  - {fileID: 7243573242323377236, guid: 9a6cb5a057e6933429d6cc5e4e104dc7, type: 3}
-  - {fileID: 7243573242323377236, guid: 9f1780f71fcabe143aa52f24e90e9113, type: 3}
+  - {fileID: 5525293239973017700, guid: 6df6aeb43fca45449a009b01cc0fe815, type: 3}
+  - {fileID: 4053392888919815264, guid: a6ac54dcc5210714eacdb665efc7195e, type: 3}

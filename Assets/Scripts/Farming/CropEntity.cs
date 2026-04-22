@@ -8,7 +8,7 @@ public class CropEntity : MonoBehaviour, ITimeObserver
 
     private int minutesGrown = 0;
     private bool isWatered = false;
-    private bool isDead = false; // 新增：死亡标记
+    private bool isDead = false;
 
     public void Initialize(CropData data)
     {
@@ -28,16 +28,13 @@ public class CropEntity : MonoBehaviour, ITimeObserver
         isWatered = status;
     }
 
-    // 【新增】死亡处理
     public void Die()
     {
         isDead = true;
         isWatered = false;
-        // 死亡时停止监听分钟广播
         if (TimeManager.Instance != null)
             TimeManager.Instance.OnMinuteChanged -= OnMinuteChanged;
 
-        // 视觉反馈：变灰变扁代表死亡
         if (currentModel != null)
         {
             Renderer r = currentModel.GetComponentInChildren<Renderer>();
@@ -82,7 +79,6 @@ public class CropEntity : MonoBehaviour, ITimeObserver
             if (prefabToSpawn != null)
             {
                 currentModel = Instantiate(prefabToSpawn, transform.position, Quaternion.identity, transform);
-                // 确保模型相对于 CropEntity 这个空物体是正常的
                 currentModel.transform.localPosition = Vector3.zero;
             }
         }
