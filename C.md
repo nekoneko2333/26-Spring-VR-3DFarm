@@ -1,5 +1,5 @@
 
-## 调用示例
+## 一 调用示例
 ### 1.物品相关
 ```c#
 // 1. 给玩家发货 (场景：收获作物、获得奖励)
@@ -30,7 +30,7 @@ int myMoney = InventoryManager.Instance.currentGold;
 ShopManager.Instance.BuyItem(itemData);
 ```
 
-## 对接AB
+## 二 对接AB
 可通过`create FameGame`的方式在Assets\Scripts\Data下创建`Item Data`。
 
 由我来创建这些`Item Data`的话
@@ -51,3 +51,11 @@ ShopManager.Instance.BuyItem(itemData);
 * 5.成熟作物的2D图片
 
 图片放在项目的Textures文件夹就可以，命名的话用英文命名，价格可以直接告诉我，图片最好是正方形方便做背包。
+
+## 三 关于背包和一些设置
+
+除了需要建立一个空物体挂载上game和time manager以外，InventoryManager也是需要挂载上去的。
+
+#### 如何初始化背包中物品数值？
+所有的物品，在创建了ItemData以后才会在背包存在，默认值皆为0。
+如果希望初始化为一个值。可在挂载了InventoryManager的物体处设置。在 Item Data 槽位，把你的ItemData源文件拖进去。

@@ -2,17 +2,28 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 定义一个简单的结构体，用于在 Inspector 面板中方便地配置初始物品
+[Serializable]
+public struct ItemEntry
+{
+    public ItemData itemData;
+    public int amount;
+}
+
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
     [Header("玩家财富")]
-    public int currentGold = 500; // 初始给500块钱测试用
+    public int currentGold = 500;
 
-    // 核心数据结构：背包字典。Key是物品数据，Value是拥有的数量
+    [Header("初始物品配置")]
+    // 在面板里点击 "+" 号添加物品，如果不添加，默认就是空的（即所有物品数量为0）
+    public List<ItemEntry> initialItems = new List<ItemEntry>();
+
+    // 核心数据结构
     private Dictionary<ItemData, int> inventoryDict = new Dictionary<ItemData, int>();
 
-    // 广播事件：当金币或背包发生变化时，通知 UI 去刷新
     public event Action<int> OnGoldChanged;
     public event Action OnInventoryChanged;
 
@@ -21,7 +32,7 @@ public class InventoryManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 保证切场景（如从农场去商店）时数据不丢
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -29,11 +40,31 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // --- 金币管理方法 ---
+    private void Start()
+    {
+        // 游戏启动时，根据配置的列表进行初始化
+        foreach (var entry in initialItems)
+        {
+            if (entry.itemData != null && entry.amount > 0)
+            {
+                // 直接存入字典
+                inventoryDict[entry.itemData] = entry.amount;
+            }
+        }
+        // 初始化完成后广播一次，让 UI 刷新
+        OnInventoryChanged?.Invoke();
+    }
+
+    // 提供一个公开的方法，方便 UI 脚本获取目前的背包数据
+    public Dictionary<ItemData, int> GetInventoryDict()
+    {
+        return inventoryDict;
+    }
+
     public void AddGold(int amount)
     {
         currentGold += amount;
-        OnGoldChanged?.Invoke(currentGold); // 广播：钱变啦！UI快更新！
+        OnGoldChanged?.Invoke(currentGold);
     }
 
     public bool SpendGold(int amount)
@@ -42,13 +73,11 @@ public class InventoryManager : MonoBehaviour
         {
             currentGold -= amount;
             OnGoldChanged?.Invoke(currentGold);
-            return true; // 扣款成功
+            return true;
         }
-        Debug.LogWarning("金币不足！");
-        return false; // 扣款失败
+        return false;
     }
 
-    // --- 物品管理方法 ---
     public void AddItem(ItemData item, int amount = 1)
     {
         if (inventoryDict.ContainsKey(item))
@@ -56,8 +85,7 @@ public class InventoryManager : MonoBehaviour
         else
             inventoryDict.Add(item, amount);
 
-        OnInventoryChanged?.Invoke(); // 广播：包里东西变啦！
-        Debug.Log($"获得了 {amount} 个 {item.itemName}");
+        OnInventoryChanged?.Invoke();
     }
 
     public bool RemoveItem(ItemData item, int amount = 1)
@@ -65,14 +93,10 @@ public class InventoryManager : MonoBehaviour
         if (inventoryDict.ContainsKey(item) && inventoryDict[item] >= amount)
         {
             inventoryDict[item] -= amount;
-            if (inventoryDict[item] <= 0)
-            {
-                inventoryDict.Remove(item); // 数量为0时移除
-            }
+            if (inventoryDict[item] <= 0) inventoryDict.Remove(item);
             OnInventoryChanged?.Invoke();
             return true;
         }
-        Debug.LogWarning("物品数量不足以扣除！");
         return false;
     }
 }
