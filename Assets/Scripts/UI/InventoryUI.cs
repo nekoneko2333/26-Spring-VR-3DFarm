@@ -12,12 +12,21 @@ public struct FixedSlot
 
 public class InventoryUI : MonoBehaviour
 {
+    [Header("背包主面板")]
+    public GameObject inventoryPanel; // 在 Unity 里把背包的大底板拖进来
+
     [Header("背包槽位配置")]
     // 在面板里配置你的格子列表
     public List<FixedSlot> fixedSlots = new List<FixedSlot>();
 
     private void Start()
     {
+        // --- 新增：游戏一开始，强制关闭背包 ---
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(false);
+        }
+
         if (InventoryManager.Instance == null)
         {
             Debug.LogError("InventoryUI 找不到 InventoryManager！");
@@ -29,6 +38,20 @@ public class InventoryUI : MonoBehaviour
 
         // 2. 极其重要：订阅背包数据变化的广播
         InventoryManager.Instance.OnInventoryChanged += RefreshUI;
+    }
+
+    // --- 新增：监听玩家按键，开关背包 ---
+    private void Update()
+    {
+        // 监听键盘 B 键
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            // 核心魔法：如果面板是开着的就关掉，关着的就打开 (Toggle 反转)
+            if (inventoryPanel != null)
+            {
+                inventoryPanel.SetActive(!inventoryPanel.activeSelf);
+            }
+        }
     }
 
     private void OnDestroy()
