@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4453031353488134949}
   m_Layer: 0
-  m_Name: Crop_radishSprout
+  m_Name: Crop_pumpkinSprout 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

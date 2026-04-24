@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89b7130125fb9bb4d8b815796502e631, type: 3}
+  m_Name: Data_Cabbage
+  m_EditorClassIdentifier: 
+  cropName: "\u5927\u767D\u83DC"
+  seedItem: {fileID: 11400000, guid: 6c80e0cd7c6f9e843bbc839bcbcd053b, type: 2}
+  harvestItem: {fileID: 11400000, guid: c4e67dbba81b3b24f9f70c615cfe0502, type: 2}
+  growTimePerStage: 1
+  growthStages:
+  - {fileID: 7243573242323377236, guid: fb278d0555d6b6e49bc5db091d9451c0, type: 3}
+  - {fileID: 5525293239973017700, guid: 829e029b0760fb64d84756c1275bf38a, type: 3}
+  - {fileID: 7851926642239520563, guid: 627ade7c5742b0545864a4c0111f55b0, type: 3}
