@@ -16,7 +16,7 @@
 | **同学 A<br>(机动与底层)** | **⑧ 运动交互**<br>**② 牧场系统**<br>**③ 房间休息** | `PlayerController.cs`<br>`PlayerInteractor.cs`<br>`PlayerAnimator.cs`<br>`AnimalEntity.cs`<br>`BarnManager.cs`<br>`AnimalData.cs`<br>`BedInteractable.cs`<br>`GameManager.cs`<br>`CameraFollow.cs`<br>`SceneTransitionManager.cs` | **主程定位（交互与架构）**。负责玩家移动（物理/动画）、输入系统、统一射线检测交互控制中心。实现牧场系统：处理动物状态机、成长计时（监听分钟广播）及产出。负责房屋场景交互，通过“床”触发跨天逻辑并通知 TimeManager。 |
 | **同学 B<br>(农业与特效)** | **① 种地系统** | `SoilTile.cs`<br>`CropEntity.cs`<br>`CropData.cs`<br>`ParticleManager.cs` | **农业核心（时间驱动）**。实现土地状态管理（荒地→耕地→播种→生长→成熟）。CropEntity 监听 TimeManager 分钟广播进行成长判定。负责所有农业动作（锄地、浇水、收获）的粒子特效表现与视觉反馈。 |
 | **同学 C<br>(经济与界面)** | **④ 商店系统**<br>**⑦ 系统UI** | `InventoryManager.cs`<br>`ItemData.cs`<br>`ShopManager.cs`<br>`ShippingBin.cs`<br>`UIManager.cs`<br>`InventoryUI.cs`<br>`ShopUI.cs`<br>`TimeUI.cs`<br>`PauseMenuUI.cs`<br>`MainMenuUI.cs` | **数据中枢（UI负责人）**。实现全局唯一单例 InventoryManager，作为金币和物品的数据源。负责商店买卖逻辑、出货箱缓存与次日金币结算（监听天级广播）。负责所有 UI 面板的生命周期管理、网格刷新与交互响应。 |
-| **同学 D<br>(世界与社交)** | **⑤ 居民与送礼**<br>**⑥ 昼夜光照**<br>**⑨ 音效制作** | `TimeManager.cs`<br>`ITimeObserver.cs`<br>`LightingController.cs`<br>`NPCEntity.cs`<br>`NPCData.cs`<br>`DialogueManager.cs`<br>`DialogueUI.cs`<br>`AudioManager.cs`<br>`EventManager.cs`<br>`WeatherManager.cs` | **环境专家（时间控制者）**。实现 TimeManager，负责分钟、小时、天三级委托广播。负责昼夜光照平滑过渡（监听小时广播）。负责 NPC 行为逻辑、对话系统与送礼好感度判定。负责全局 BGM 切换与各类交互音效的触发管理。 |
+| **同学 D<br>(世界与社交)** | **⑤ 居民与送礼**<br>**⑥ 昼夜光照**<br>**⑨ 音效制作** | `TimeManager.cs`<br>`ITimeObserver.cs`<br>`LightingController.cs`<br>`NPCEntity.cs`<br>`NPCData.cs`<br>`DialogueManager.cs`<br>`DialogueUI.cs`<br>`AudioManager.cs`<br>`EventManager.cs` | **环境专家（时间控制者）**。实现 TimeManager，负责分钟、小时、天三级委托广播。负责昼夜光照平滑过渡（监听小时广播）。负责 NPC 行为逻辑、对话系统与送礼好感度判定。负责全局 BGM 切换与各类交互音效的触发管理。 |
 
 ---
 
