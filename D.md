@@ -1,84 +1,165 @@
-## 一 调用示例
+## 一、调用示例
+
 ### 1. 时间系统
-```c#
-// 1. 推进游戏时间（任何需要“消耗时间”的交互都调用）
+
+```csharp
+// 推进游戏时间
 TimeManager.Instance.AddMinutes(5);
 
-// 2. 订阅 / 取消订阅时间广播（作物、动物、光照等使用）
+// 监听分钟广播
 private void OnEnable() { TimeManager.Instance.OnMinuteChanged += OnMinuteChanged; }
 private void OnDisable() { if (TimeManager.Instance != null) TimeManager.Instance.OnMinuteChanged -= OnMinuteChanged; }
-private void OnMinuteChanged(int totalMinutes) { /* 生长/计时逻辑写这里 */ }
+private void OnMinuteChanged(int totalMinutes) { /* 生长 / 计时逻辑 */ }
 ```
 
 ### 2. 事件总线（跨模块通知）
-```c#
-// 触发玩家睡觉（通常在 A 的 BedInteractable 中调用）
+
+```csharp
+// 触发玩家睡觉
 EventManager.TriggerPlayerSleep();
 
-// 监听睡觉事件（例如 C 的出货结算）
+// 监听睡觉事件
 private void OnEnable() { EventManager.OnPlayerSleep += MySettleFunction; }
 private void OnDisable() { EventManager.OnPlayerSleep -= MySettleFunction; }
 ```
 
 ### 3. 对话
-```c#
-// 开启对话（可选回调用于在对话结束后执行额外逻辑，例如打开商店）
-DialogueManager.Instance.StartDialogue(npcData, () => { /* onComplete */ });
+
+```csharp
+// 开启对话
+DialogueManager.Instance.StartDialogue(npcData, isMerchant);
 
 // 强制结束当前对话
 DialogueManager.Instance.EndDialogue();
 ```
 
 ### 4. 音频
-```c#
-// 播放短音效（全组统一调用音效接口）
+
+```csharp
 AudioManager.Instance.PlaySFX(myAudioClip);
-
-// 注意：BGM 会根据 TimeManager 的小时广播自动切换（日/夜）
 ```
 
-### 5. NPC 交互（如何触发商店/对话）
-```c#
-// NPCEntity 的 Interact 已封装：按 E 调用后会自动
-// - 启动/结束对话
-// - 根据 isMerchant 字段在对话结束回调中打开商店
-// - 自动调用 TimeManager.AddMinutes(5 或 8)
-// 因此其他同学只需调用 NPCEntity.Interact()（由 PlayerInteractor 统一触发）
+### 5. 路边拾取礼物
+
+```csharp
+// GiftPickup 挂在可交互礼物物体上
+// 玩家按 E 后会调用：
+InventoryManager.Instance.AddItem(giftItem, amount);
 ```
-
-## 二 我已完成的工作（截至当前仓库状态）
-- 实现并发布 `TimeManager`：分钟/小时/天 分级广播，`AddMinutes()` 核心方法。
-- 实现 `ITimeObserver` 接口（示例与使用规范已写入文件）。
-- 实现 `EventManager` 静态事件总线（TriggerPlayerSleep / OnPlayerSleep / OnShippingSettled 等）。
-- 实现 `DialogueManager`（对话启动/结束、回调支持）与 `DialogueUI` 的初版。
-- 实现 `AudioManager`：统一 `PlaySFX()` 接口、按小时自动切换 BGM。
-- 实现 `LightingController`：监听时间广播并驱动昼夜光照曲线。
-- 实现 `NPCEntity` 与 `NPCData` 基础结构（含 `isMerchant` 逻辑）。
-
-
-## 三 给其他同学的对接说明
-- 时间监听与生长逻辑（给 A、B）：
-  - 在 `Start()` 或 `OnEnable()` 中订阅 `TimeManager.Instance.OnMinuteChanged`。
-  - 在 `OnDestroy()` 或 `OnDisable()` 中取消订阅，避免空引用。
-  - 不要在 `Update()` 做任何业务计时。
-
-- 触发睡觉 / 次日结算（给 A、C）：
-  - 当玩家确认睡觉时，只需调用：`EventManager.TriggerPlayerSleep();`。
-  - 出货箱在收到 OnPlayerSleep 时会统一结算（C 已实现）。
-
-- 对话与 NPC（给 A、C）：
-  - 开启对话：`DialogueManager.Instance.StartDialogue(npcData, optionalCallback);`
-  - 对话内部会阻断商店同时打开的情况，请放心调用。
-
-- 音效（给所有人）：
-  - 所有短音效请使用 `AudioManager.Instance.PlaySFX(clip);`。
-  - 请在 Inspector 中把 `AudioClip` 拖到你的脚本的公开字段，然后按需调用。
-
-## 四 场景与资源配置小贴士（给美术/场景搭建同学）
-- `TimeManager`：请把 `TimeManager` Prefab 放到主场景并保证为单例（默认 Awake 会处理）。
-- `AudioManager`：在场景中创建 `AudioManager`，并在 Inspector 中按脚本头部注释拖入 `bgmSource`、`sfxSource`、`dayBGM`、`nightBGM`。
-- `LightingController`：把 `Directional Light` 拖给脚本的 `directionalLight`，并在面板里调好 `directionalColor`、`ambientColor`、`lightIntensity` 曲线。
 
 ---
 
-如果你希望我把 `WeatherManager` 的初版也实现（自动下雨/停雨并触发地表湿度影响作物成长），我可以继续实现并把对接点写在这里。需要我继续吗？
+## 二、我已经完成的工作
+
+- 实现并发布 `TimeManager`
+  - 分钟 / 小时 / 天三级广播
+  - `AddMinutes()` 核心时间推进方法
+- 实现 `ITimeObserver`
+- 实现 `EventManager`
+  - `TriggerPlayerSleep`
+  - `OnPlayerSleep`
+  - 其他跨模块广播接口
+- 实现 `DialogueManager`
+  - 开启对话
+  - 结束对话
+  - 选项分支
+  - 送礼回调处理
+- 实现 `NPCEntity` 与 `NPCData`
+  - 普通 NPC / 商人区分
+  - 送礼偏好字段
+  - 好感度字段
+- 实现送礼逻辑
+  - 根据 `NPCData.lovedItemID` 判断是否送对礼物
+  - 根据礼物结果增加好感度
+  - 显示对应 NPC 反馈台词
+- 实现路边礼物拾取 `GiftPickup`
+  - 按 `E` 拾取礼物
+  - 礼物加入 `InventoryManager`
+- 实现对话与时间/移动状态联动
+  - 对话期间玩家不能移动
+  - 商店打开期间玩家不能移动
+  - 对话 / 商店期间自然时间暂停
+  - 时间改为交互结束后统一结算
+- 实现 `AudioManager`
+  - `PlaySFX()` 统一接口
+  - BGM 按时间自动切换
+- 实现 `LightingController`
+  - 根据时间变化驱动昼夜光照
+
+---
+
+## 三、给其他同学的对接说明
+
+### 给 A / B：时间监听
+
+- 需要计时的逻辑统一监听 `TimeManager.Instance.OnMinuteChanged`
+- 不要在业务逻辑里自己用 `Update()` 私设计时
+- 记得在 `OnDisable()` / `OnDestroy()` 里取消订阅
+
+### 给 A / C：睡觉与次日结算
+
+- 玩家确认睡觉时调用：
+
+```csharp
+EventManager.TriggerPlayerSleep();
+```
+
+### 给 C：背包 / 送礼 / 礼物 UI
+
+- 送礼时 D 侧调用：
+
+```csharp
+InventoryUI.Instance.OpenForGifting(Action<ItemData, int> callback);
+```
+
+- 路边礼物拾取时，D 侧已经调用：
+
+```csharp
+InventoryManager.Instance.AddItem(giftItem, amount);
+```
+
+- 当前礼物不显示在背包 UI 的原因，不在 D 的拾取逻辑，而在 C 的 `InventoryUI` 仍然是固定槽位 `fixedSlots`
+- 如果要显示新礼物，需要 C：
+  - 手动把礼物 `ItemData` 配进 `InventoryUI.fixedSlots`
+  - 或把背包改成动态生成格子
+
+### 给所有人：音效
+
+- 所有短音效统一调用：
+
+```csharp
+AudioManager.Instance.PlaySFX(clip);
+```
+
+---
+
+## 四、资源与配置提醒
+
+- `TimeManager`：场景中保留单例
+- `AudioManager`：正确绑定 `bgmSource` / `sfxSource` / `dayBGM` / `nightBGM`
+- `LightingController`：绑定方向光并配置曲线
+- `NPCData`：需要填写
+  - `lovedItemID`
+  - `giftRewardFriendship`
+  - `loveGiftDialogue`
+  - `normalGiftDialogue`
+- `GiftPickup`：需要绑定
+  - `giftItem`
+  - `amount`
+
+---
+
+## 五、当前状态总结
+
+我这边 D 模块已经把：
+
+- 时间系统
+- 对话系统
+- 商人/送礼流程
+- 路边礼物拾取
+- 对话期间暂停时间与锁移动
+- 音频与昼夜
+
+这些内容基本接通了。
+
+目前和 C 的主要待对接点，是“礼物进入背包后如何在 UI 中显示”。
