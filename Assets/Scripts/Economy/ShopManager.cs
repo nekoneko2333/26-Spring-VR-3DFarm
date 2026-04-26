@@ -8,7 +8,7 @@ public class ShopManager : MonoBehaviour
     public static ShopManager Instance { get; private set; }
 
     [Header("商店大底板 (用来控制开关)")]
-    public GameObject shopPanel; // 回到 Unity，把你的商店背景大面板拖进来
+    public GameObject shopPanel; 
 
     [Header("右侧详情面板 UI 绑定")]
     public Image detailIcon;
@@ -17,7 +17,6 @@ public class ShopManager : MonoBehaviour
     public TextMeshProUGUI detailOwnedText;
     public Button buyButton;
 
-    // 店长的记忆：当前顾客正在看哪个商品？
     private ItemData currentItem;
 
     private void Awake()
@@ -28,13 +27,11 @@ public class ShopManager : MonoBehaviour
 
     private void Start()
     {
-        // 游戏一开始，确保商店是关着的
         if (shopPanel != null)
         {
             shopPanel.SetActive(false);
         }
 
-        // 给右下角的购买按钮绑定点击事件
         if (buyButton != null)
         {
             buyButton.onClick.AddListener(BuyCurrentItem);
@@ -42,12 +39,8 @@ public class ShopManager : MonoBehaviour
     }
 
     // ==========================================
-    // 新增：给外部调用的开关门接口
+    // 外部调用的开关门接口
     // ==========================================
-
-    /// <summary>
-    /// 打开商店（由同学 D 的 NPC 交互代码来调用）
-    /// </summary>
     public void OpenShop()
     {
         if (shopPanel != null)
@@ -57,9 +50,6 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 关闭商店（绑给你的右上角叉叉按钮）
-    /// </summary>
     public void CloseShop()
     {
         if (shopPanel != null)
@@ -69,39 +59,37 @@ public class ShopManager : MonoBehaviour
     }
 
     // ==========================================
-    // 原有的购买与展示逻辑
+    // 原有的购买与展示逻辑 (已增加完美防错判空)
     // ==========================================
-
-    // --- 导购员呼叫店长时，调用这个方法 ---
     public void ShowItemDetails(ItemData item)
     {
-        currentItem = item; // 记住顾客在看啥
+        currentItem = item;
 
-        // 更新右侧屏幕的文字和图片
-        detailIcon.sprite = item.itemIcon;
-        detailIcon.enabled = true; 
+        // 【防弹衣逻辑】：确认 detailIcon 存活才操作
+        if (detailIcon != null)
+        {
+            detailIcon.sprite = item.itemIcon;
+            detailIcon.enabled = true; 
+        }
+        else Debug.LogWarning("ShopManager 找不到 detailIcon！图片丢失或未绑定。");
         
-        detailNameText.text = item.itemName;
-        detailPriceText.text = "价格:" + item.buyPrice;
+        if (detailNameText != null) detailNameText.text = item.itemName;
+        if (detailPriceText != null) detailPriceText.text = "价格:" + item.buyPrice;
 
-        RefreshOwnedAmount(); // 查一下顾客包里有几个
+        RefreshOwnedAmount(); 
 
-        buyButton.interactable = true; // 允许点击购买
+        if (buyButton != null) buyButton.interactable = true; 
     }
 
-    // --- 玩家点击“购买按钮”时，调用这个方法 ---
     private void BuyCurrentItem()
     {
         if (currentItem == null) return;
 
-        // 1. 检查金币够不够 
         if (InventoryManager.Instance.SpendGold(currentItem.buyPrice))
         {
-            // 2. 钱够了，给玩家发货
             InventoryManager.Instance.AddItem(currentItem, 1);
             Debug.Log($"购买成功：{currentItem.itemName}，花费了 {currentItem.buyPrice} 金币");
             
-            // 3. 买完之后，马上刷新右侧显示的拥有数量
             RefreshOwnedAmount();
         }
         else
@@ -110,10 +98,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // --- 辅助方法：去背包查目前拥有多少个 ---
     private void RefreshOwnedAmount()
     {
-        if (currentItem == null) return;
+        if (currentItem == null || detailOwnedText == null) return;
 
         Dictionary<ItemData, int> dict = InventoryManager.Instance.GetInventoryDict();
         int amount = 0;
@@ -122,14 +109,15 @@ public class ShopManager : MonoBehaviour
         detailOwnedText.text = "已拥有:" + amount;
     }
 
-    // --- 辅助方法：清空屏幕 ---
     private void ClearDetails()
     {
         currentItem = null;
-        detailIcon.enabled = false;
-        detailNameText.text = "请选择商品";
-        detailPriceText.text = "价格:-";
-        detailOwnedText.text = "已拥有:-";
-        buyButton.interactable = false; // 没选商品不准买
+
+        // 【防弹衣逻辑】：依次确认组件存活才清空
+        if (detailIcon != null) detailIcon.enabled = false;
+        if (detailNameText != null) detailNameText.text = "请选择商品";
+        if (detailPriceText != null) detailPriceText.text = "价格:-";
+        if (detailOwnedText != null) detailOwnedText.text = "已拥有:-";
+        if (buyButton != null) buyButton.interactable = false; 
     }
 }

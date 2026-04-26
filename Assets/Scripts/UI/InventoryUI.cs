@@ -1,5 +1,5 @@
 /* ==============================================================================
- * 【背包界面表现层】 InventoryUI.cs (全自动按钮绑定版)
+ * 【背包界面表现层】 InventoryUI.cs (终极版：动态生成 + 全能状态机)
  * 负责人：同学 C (经济与系统 UI)
  * ============================================================================== */
 
@@ -8,14 +8,6 @@ using TMPro;
 using System.Collections.Generic;
 using System; 
 using UnityEngine.UI; 
-
-[System.Serializable]
-public struct FixedSlot
-{
-    public ItemData targetItem;        
-    public TextMeshProUGUI amountText; 
-    public Button slotButton; 
-}
 
 public class InventoryUI : MonoBehaviour
 {
@@ -26,7 +18,12 @@ public class InventoryUI : MonoBehaviour
 
     [Header("背包主面板")]
     public GameObject inventoryPanel; 
-    public List<FixedSlot> fixedSlots = new List<FixedSlot>();
+
+    [Header("动态生成配置")]
+    [Tooltip("把做好的 bag1 预制体拖到这里")]
+    public GameObject slotPrefab; 
+    [Tooltip("用来装格子的父节点（挂了 GridLayoutGroup 的那个空物体）")]
+    public Transform slotContainer; 
 
     [Header("核心多功能交互区")]
     public Button actionButton;       
@@ -46,22 +43,12 @@ public class InventoryUI : MonoBehaviour
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
         if (actionButton != null) actionButton.onClick.AddListener(OnActionButtonClicked);
 
-        foreach (var slot in fixedSlots)
-        {
-            if (slot.slotButton != null && slot.targetItem != null)
-            {
-                // 必须存一个局部变量，这叫“闭包防坑”
-                ItemData boundItem = slot.targetItem; 
-                
-                // 让代码自动帮你把 OnClickSlot 方法绑到按钮上，并自动传参！
-                slot.slotButton.onClick.AddListener(() => OnClickSlot(boundItem));
-            }
-        }
-        // ====================================================================
-
         if (InventoryManager.Instance == null) return;
 
+        // 第一次打开游戏时刷新一次
         RefreshUI();
+        
+        // 监听后台数据变化（比如捡到礼物、买卖东西），一有变化自动重新搭台子
         InventoryManager.Instance.OnInventoryChanged += RefreshUI;
     }
 
@@ -85,21 +72,68 @@ public class InventoryUI : MonoBehaviour
         if (InventoryManager.Instance != null) InventoryManager.Instance.OnInventoryChanged -= RefreshUI;
     }
 
+    // ==========================================================
+    // 🌟 核心魔法：根据字典数据动态生成格子
+    // ==========================================================
     private void RefreshUI()
     {
-        Dictionary<ItemData, int> currentDict = InventoryManager.Instance.GetInventoryDict();
-        foreach (var slot in fixedSlots)
+        if (slotPrefab == null || slotContainer == null) return;
+
+        // 1. 拆掉旧台子：清空容器里的所有现有格子
+        foreach (Transform child in slotContainer)
         {
-            if (slot.targetItem != null && slot.amountText != null)
+            Destroy(child.gameObject);
+        }
+
+        // 2. 拿到真实的背包数据
+        Dictionary<ItemData, int> currentDict = InventoryManager.Instance.GetInventoryDict();
+
+        // 3. 遍历数据，有啥造啥
+        foreach (var pair in currentDict)
+        {
+            ItemData item = pair.Key;
+            int amount = pair.Value;
+
+            if (amount <= 0) continue; // 数量为0的就不造格子了
+
+            // 4. 克隆一个新格子到容器下
+            GameObject newSlot = Instantiate(slotPrefab, slotContainer);
+
+            // 5. 根据你 bag1 的结构，自动寻找并赋值
+            // 注意：这里强依赖你的子物体名字，如果改名了这里也要跟着改
+            Transform imageTransform = newSlot.transform.Find("Image");
+            Transform amountTransform = newSlot.transform.Find("amount");
+
+            if (imageTransform != null)
             {
-                if (currentDict.ContainsKey(slot.targetItem)) slot.amountText.text = currentDict[slot.targetItem].ToString();
-                else slot.amountText.text = "0"; 
+                // 换图片
+                Image icon = imageTransform.GetComponent<Image>();
+                if (icon != null) icon.sprite = item.itemIcon;
+
+                // 绑按钮事件
+                Button btn = imageTransform.GetComponent<Button>();
+                if (btn != null)
+                {
+                    ItemData boundItem = item; // 闭包防坑
+                    btn.onClick.AddListener(() => OnClickSlot(boundItem));
+                }
+            }
+
+            if (amountTransform != null)
+            {
+                // 改数量
+                TextMeshProUGUI amountTxt = amountTransform.GetComponent<TextMeshProUGUI>();
+                if (amountTxt != null) amountTxt.text = amount.ToString();
             }
         }
+
+        // 刷新大按钮的状态
         RefreshActionButton(); 
     }
 
+    // ==========================================================
     // 外部系统调用接口区
+    // ==========================================================
     public void OpenForGifting(Action<ItemData, int> callback)
     {
         currentState = InventoryState.Gifting; 
@@ -115,16 +149,15 @@ public class InventoryUI : MonoBehaviour
         RefreshActionButton(); 
     }
 
+    // ==========================================================
     // UI 内部交互逻辑区
+    // ==========================================================
     public void OnClickSlot(ItemData item)
     {
         selectedItem = item;
         RefreshActionButton(); 
     }
 
-/// <summary>
-    /// 【逻辑优化】支持随时随地卖出的按钮刷新
-    /// </summary>
     private void RefreshActionButton()
     {
         if (actionButton == null || actionButtonText == null) return;
@@ -143,11 +176,8 @@ public class InventoryUI : MonoBehaviour
         switch (currentState)
         {
             case InventoryState.Normal: 
-                // 1. 如果是种子或工具 -> 走装配逻辑
                 if (selectedItem.itemType == ItemType.Seed) actionButtonText.text = "装备种子";
                 else if (selectedItem.itemType == ItemType.Tool) actionButtonText.text = "装备工具";
-                
-                // 2. 核心修改：如果是农产品且可出售 -> 随时随地显示“卖出”
                 else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
                 {
                     actionButtonText.text = $"卖出 (+{selectedItem.sellPrice}G)";
@@ -160,7 +190,6 @@ public class InventoryUI : MonoBehaviour
                 break;
 
             case InventoryState.Gifting: 
-                // 送礼逻辑保持不变，优先响应同学 D 的需求
                 if (selectedItem.itemType == ItemType.Crop || selectedItem.itemType == ItemType.Material) 
                     actionButtonText.text = "确认赠送";
                 else 
@@ -169,12 +198,15 @@ public class InventoryUI : MonoBehaviour
                     actionButtonText.text = "不可赠送";
                 }
                 break;
+
+            case InventoryState.Shop:
+                // 兼容老商店面板的防护（因为现在卖出合在 Normal 里了，这里其实可以不写，但保留以防万一）
+                actionButton.interactable = false; 
+                actionButtonText.text = "商店模式";
+                break;
         }
     }
 
-    /// <summary>
-    /// 【逻辑优化】按钮点击分发
-    /// </summary>
     private void OnActionButtonClicked()
     {
         if (selectedItem == null) return;
@@ -184,12 +216,10 @@ public class InventoryUI : MonoBehaviour
             case InventoryState.Normal:
                 if (selectedItem.itemType == ItemType.Seed || selectedItem.itemType == ItemType.Tool)
                 {
-                    // 对接同学 B 的装配逻辑
                     Debug.Log($"[装配系统] 玩家装备了: {selectedItem.itemName}");
                 }
                 else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
                 {
-                    // 【随时随地卖出】核心实现
                     SellItemProcess(selectedItem);
                 }
                 break;
@@ -201,20 +231,13 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    // 封装一个通用的卖出处理函数
     private void SellItemProcess(ItemData item)
     {
-        // 1. 扣除物品
         InventoryManager.Instance.RemoveItem(item, 1);
-        
-        // 2. 增加金币 (假设你有一个 MoneyManager)
-        // MoneyManager.Instance.AddMoney(item.sellPrice);
-        
         Debug.Log($"[经济系统] 随时卖出成功！获得 {item.sellPrice} 金币");
-        
-        // 3. 卖完后不需要关闭背包，允许玩家继续点击其他物品卖出
         RefreshUI(); 
     }
+
     public void CloseInventory()
     {
         if (currentState == InventoryState.Gifting) currentGiftCallback?.Invoke(null, 0);
