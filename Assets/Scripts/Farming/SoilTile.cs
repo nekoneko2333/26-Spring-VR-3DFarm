@@ -23,8 +23,7 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     public Material plantedWetMat;
     public Material deadMat;
 
-    [Header("当前选中的种子 (调试用)")]
-    public CropData selectedSeed;
+    // 【修改点 1】：删除了写死的 public CropData selectedSeed;
 
     public GameObject cropEntityPrefab;
     private MeshRenderer meshRenderer;
@@ -130,10 +129,21 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     // ==========================================
     private void PlantCrop()
     {
-        if (selectedSeed == null || selectedSeed.seedItem == null) return;
+        // 【修改点 2】：不再用面板写死的种子，而是找 PlayerFarming 拿当前装备的种子！
+        CropData seedToPlant = null;
+        if (PlayerFarming.Instance != null)
+        {
+            seedToPlant = PlayerFarming.Instance.currentEquippedCrop;
+        }
+
+        if (seedToPlant == null || seedToPlant.seedItem == null)
+        {
+            Debug.LogWarning("❌【操作错误】你手里没拿种子啊！请打开背包装备一个种子！(测试请按数字键1或2)");
+            return;
+        }
 
         // 向 C 的背包申请扣除种子
-        if (InventoryManager.Instance.RemoveItem(selectedSeed.seedItem, 1) == false)
+        if (InventoryManager.Instance.RemoveItem(seedToPlant.seedItem, 1) == false)
         {
             Debug.Log("❌【警告】你背包里没有种子了！无法播种！");
             return;
@@ -146,11 +156,11 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         newCropObj.transform.localScale = Vector3.one;
 
         currentCropInstance = newCropObj.GetComponent<CropEntity>();
-        currentCropInstance.Initialize(selectedSeed);
+        currentCropInstance.Initialize(seedToPlant); // 这里传真实的动态种子
         currentCropInstance.SetWatered(wasWet);
 
         string waterTip = wasWet ? "地是湿的，它会立刻开始生长！" : "❌警告：地是干的！请立刻【右键】浇水，否则长不大！";
-        Debug.Log($"🌱【播种成功】种下了 {selectedSeed.cropName} (背包扣除1个)。{waterTip}");
+        Debug.Log($"🌱【播种成功】种下了 {seedToPlant.cropName} (背包扣除1个)。{waterTip}");
     }
 
     private void Harvest()

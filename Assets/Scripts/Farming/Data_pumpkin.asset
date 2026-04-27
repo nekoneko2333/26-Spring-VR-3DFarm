@@ -17,6 +17,6 @@ MonoBehaviour:
   harvestItem: {fileID: 11400000, guid: da9eef3a335a58047b5f12de6b6cc7d1, type: 2}
   growTimePerStage: 1
   growthStages:
-  - {fileID: 7243573242323377236, guid: 6a1c6adb7719ea7418a62bcd097c8a98, type: 3}
-  - {fileID: 5525293239973017700, guid: 6df6aeb43fca45449a009b01cc0fe815, type: 3}
-  - {fileID: 7851926642239520563, guid: 627ade7c5742b0545864a4c0111f55b0, type: 3}
+  - {fileID: 7243573242323377236, guid: 0cb0b91db11f85846825fff4f327f50c, type: 3}
+  - {fileID: 5525293239973017700, guid: 1d7dc6e6d666a5740b2d7a773d3aeeef, type: 3}
+  - {fileID: 3875024107140540135, guid: 5a69e0bf72ad55243b5145a9709165b0, type: 3}

@@ -20,4 +20,4 @@ MonoBehaviour:
   isSellable: 1
   buyPrice: 50
   sellPrice: 50
-  itemType: 1
+  itemType: 0

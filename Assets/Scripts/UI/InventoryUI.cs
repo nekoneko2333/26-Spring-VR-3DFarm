@@ -217,6 +217,18 @@ public class InventoryUI : MonoBehaviour
                 if (selectedItem.itemType == ItemType.Seed || selectedItem.itemType == ItemType.Tool)
                 {
                     Debug.Log($"[装配系统] 玩家装备了: {selectedItem.itemName}");
+
+                    // =========================================================
+                    // 🌟 【你加的调度指令就在这里】🌟
+                    // 1. 把选中的物品发送给你的 PlayerFarming 管家
+                    if (PlayerFarming.Instance != null)
+                    {
+                        PlayerFarming.Instance.EquipItem(selectedItem);
+                    }
+
+                    // 2. 装备成功后，帮玩家自动关掉背包，方便他立刻去种地！
+                    CloseInventory();
+                    // =========================================================
                 }
                 else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
                 {
