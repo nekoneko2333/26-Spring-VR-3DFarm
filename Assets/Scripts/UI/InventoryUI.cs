@@ -1,5 +1,5 @@
 /* ==============================================================================
- * 【背包界面表现层】 InventoryUI.cs (终极版：动态生成 + 全能状态机)
+ * 【背包界面表现层】 InventoryUI.cs (极简纯净版：完美贴合策划案)
  * 负责人：同学 C (经济与系统 UI)
  * ============================================================================== */
 
@@ -13,21 +13,23 @@ public class InventoryUI : MonoBehaviour
 {
     public static InventoryUI Instance { get; private set; }
 
-    public enum InventoryState { Normal, Gifting, Shop }
+    // 删除了 Shop 状态，现在只有 正常(Normal) 和 送礼(Gifting) 两种状态
+    public enum InventoryState { Normal, Gifting }
     public InventoryState currentState = InventoryState.Normal;
 
     [Header("背包主面板")]
     public GameObject inventoryPanel; 
 
     [Header("动态生成配置")]
-    [Tooltip("把做好的 bag1 预制体拖到这里")]
     public GameObject slotPrefab; 
-    [Tooltip("用来装格子的父节点（挂了 GridLayoutGroup 的那个空物体）")]
     public Transform slotContainer; 
 
     [Header("核心多功能交互区")]
     public Button actionButton;       
     public TextMeshProUGUI actionButtonText; 
+    
+    // 【新增】你允许加入的名字显示组件
+    public TextMeshProUGUI itemNameText; 
 
     private ItemData selectedItem;  
     private Action<ItemData, int> currentGiftCallback;
@@ -42,13 +44,11 @@ public class InventoryUI : MonoBehaviour
     {
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
         if (actionButton != null) actionButton.onClick.AddListener(OnActionButtonClicked);
+        if (itemNameText != null) itemNameText.text = "请选择物品";
 
         if (InventoryManager.Instance == null) return;
 
-        // 第一次打开游戏时刷新一次
         RefreshUI();
-        
-        // 监听后台数据变化（比如捡到礼物、买卖东西），一有变化自动重新搭台子
         InventoryManager.Instance.OnInventoryChanged += RefreshUI;
     }
 
@@ -73,66 +73,56 @@ public class InventoryUI : MonoBehaviour
     }
 
     // ==========================================================
-    // 🌟 核心魔法：根据字典数据动态生成格子
+    // 动态生成格子
     // ==========================================================
     private void RefreshUI()
     {
         if (slotPrefab == null || slotContainer == null) return;
 
-        // 1. 拆掉旧台子：清空容器里的所有现有格子
         foreach (Transform child in slotContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // 2. 拿到真实的背包数据
         Dictionary<ItemData, int> currentDict = InventoryManager.Instance.GetInventoryDict();
 
-        // 3. 遍历数据，有啥造啥
         foreach (var pair in currentDict)
         {
             ItemData item = pair.Key;
             int amount = pair.Value;
 
-            if (amount <= 0) continue; // 数量为0的就不造格子了
+            if (amount <= 0) continue; 
 
-            // 4. 克隆一个新格子到容器下
             GameObject newSlot = Instantiate(slotPrefab, slotContainer);
 
-            // 5. 根据你 bag1 的结构，自动寻找并赋值
-            // 注意：这里强依赖你的子物体名字，如果改名了这里也要跟着改
             Transform imageTransform = newSlot.transform.Find("Image");
             Transform amountTransform = newSlot.transform.Find("amount");
 
             if (imageTransform != null)
             {
-                // 换图片
                 Image icon = imageTransform.GetComponent<Image>();
                 if (icon != null) icon.sprite = item.itemIcon;
 
-                // 绑按钮事件
                 Button btn = imageTransform.GetComponent<Button>();
                 if (btn != null)
                 {
-                    ItemData boundItem = item; // 闭包防坑
+                    ItemData boundItem = item; 
                     btn.onClick.AddListener(() => OnClickSlot(boundItem));
                 }
             }
 
             if (amountTransform != null)
             {
-                // 改数量
                 TextMeshProUGUI amountTxt = amountTransform.GetComponent<TextMeshProUGUI>();
                 if (amountTxt != null) amountTxt.text = amount.ToString();
             }
         }
 
-        // 刷新大按钮的状态
         RefreshActionButton(); 
     }
 
     // ==========================================================
-    // 外部系统调用接口区
+    // 同学 D 专属送礼呼出接口 (不再有 Shop 接口)
     // ==========================================================
     public void OpenForGifting(Action<ItemData, int> callback)
     {
@@ -142,19 +132,16 @@ public class InventoryUI : MonoBehaviour
         RefreshActionButton(); 
     }
 
-    public void OpenForShop()
-    {
-        currentState = InventoryState.Shop;
-        if (inventoryPanel != null) inventoryPanel.SetActive(true);
-        RefreshActionButton(); 
-    }
-
     // ==========================================================
-    // UI 内部交互逻辑区
+    // 交互逻辑核心 (严格遵循 3 种物品设定)
     // ==========================================================
     public void OnClickSlot(ItemData item)
     {
         selectedItem = item;
+        
+        // 选中物品时，显示它的名字
+        if (itemNameText != null) itemNameText.text = item.itemName;
+        
         RefreshActionButton(); 
     }
 
@@ -176,33 +163,35 @@ public class InventoryUI : MonoBehaviour
         switch (currentState)
         {
             case InventoryState.Normal: 
-                if (selectedItem.itemType == ItemType.Seed) actionButtonText.text = "装备种子";
-                else if (selectedItem.itemType == ItemType.Tool) actionButtonText.text = "装备工具";
+                // 1. 正常打开背包：只能装备种子，或随时卖出农产品
+                if (selectedItem.itemType == ItemType.Seed) 
+                {
+                    actionButtonText.text = "装备种子";
+                }
                 else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
                 {
                     actionButtonText.text = $"卖出 (+{selectedItem.sellPrice}G)";
                 }
                 else 
                 {
+                    // 礼物不能在这里用
                     actionButton.interactable = false; 
-                    actionButtonText.text = "不可使用";
+                    actionButtonText.text = "不可操作";
                 }
                 break;
 
             case InventoryState.Gifting: 
-                if (selectedItem.itemType == ItemType.Crop || selectedItem.itemType == ItemType.Material) 
+                // 2. 被同学 D 的 NPC 呼出时：只能送出礼物/农产品
+                // (你可以根据你们定义的礼物 ItemType 调整这里，假设礼物是 Material 或 Crop)
+                if (selectedItem.itemType == ItemType.Material || selectedItem.itemType == ItemType.Crop) 
+                {
                     actionButtonText.text = "确认赠送";
+                }
                 else 
                 {
                     actionButton.interactable = false;
                     actionButtonText.text = "不可赠送";
                 }
-                break;
-
-            case InventoryState.Shop:
-                // 兼容老商店面板的防护（因为现在卖出合在 Normal 里了，这里其实可以不写，但保留以防万一）
-                actionButton.interactable = false; 
-                actionButtonText.text = "商店模式";
                 break;
         }
     }
@@ -214,21 +203,10 @@ public class InventoryUI : MonoBehaviour
         switch (currentState)
         {
             case InventoryState.Normal:
-                if (selectedItem.itemType == ItemType.Seed || selectedItem.itemType == ItemType.Tool)
+                if (selectedItem.itemType == ItemType.Seed)
                 {
-                    Debug.Log($"[装配系统] 玩家装备了: {selectedItem.itemName}");
-
-                    // =========================================================
-                    // 🌟 【你加的调度指令就在这里】🌟
-                    // 1. 把选中的物品发送给你的 PlayerFarming 管家
-                    if (PlayerFarming.Instance != null)
-                    {
-                        PlayerFarming.Instance.EquipItem(selectedItem);
-                    }
-
-                    // 2. 装备成功后，帮玩家自动关掉背包，方便他立刻去种地！
+                    if (PlayerFarming.Instance != null) PlayerFarming.Instance.EquipItem(selectedItem);
                     CloseInventory();
-                    // =========================================================
                 }
                 else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
                 {
@@ -246,7 +224,16 @@ public class InventoryUI : MonoBehaviour
     private void SellItemProcess(ItemData item)
     {
         InventoryManager.Instance.RemoveItem(item, 1);
-        Debug.Log($"[经济系统] 随时卖出成功！获得 {item.sellPrice} 金币");
+        InventoryManager.Instance.AddGold(item.sellPrice); 
+        Debug.Log($"[经济系统] 随时卖出成功！扣除 {item.itemName} x1，获得 {item.sellPrice} 金币");
+        
+        // 卖掉东西后，如果这个东西没库存了，把名字重置一下
+        if (!InventoryManager.Instance.GetInventoryDict().ContainsKey(item) || InventoryManager.Instance.GetInventoryDict()[item] <= 0)
+        {
+            selectedItem = null;
+            if (itemNameText != null) itemNameText.text = "请选择物品";
+        }
+        
         RefreshUI(); 
     }
 
@@ -256,6 +243,10 @@ public class InventoryUI : MonoBehaviour
 
         currentState = InventoryState.Normal; 
         selectedItem = null;
+        
+        // 关掉背包时，把名字清理掉
+        if (itemNameText != null) itemNameText.text = "请选择物品";
+        
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
     }
 }
