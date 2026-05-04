@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 95350720}
   - component: {fileID: 95350719}
   - component: {fileID: 95350718}
+  - component: {fileID: 95350723}
   m_Layer: 0
   m_Name: SoilTile_Prefab
   m_TagString: Untagged
@@ -157,11 +158,19 @@ MonoBehaviour:
   currentState: 0
   barrenMat: {fileID: 2100000, guid: 26c495f3626a6e043a0de84b0daaca56, type: 2}
   tilledMat: {fileID: 2100000, guid: c15cab32ea32a8842b975d3fb4e29e1f, type: 2}
-  tilledWetMat: {fileID: 2100000, guid: 91ec5c32ec5bc384aaf247ef3afab9c9, type: 2}
   plantedMat: {fileID: 2100000, guid: c15cab32ea32a8842b975d3fb4e29e1f, type: 2}
   plantedWetMat: {fileID: 2100000, guid: 91ec5c32ec5bc384aaf247ef3afab9c9, type: 2}
   deadMat: {fileID: 2100000, guid: c15cab32ea32a8842b975d3fb4e29e1f, type: 2}
   cropEntityPrefab: {fileID: 1870923251}
+  hoeSound: {fileID: 8300000, guid: decdee522eae2d8498929345176ba3c4, type: 3}
+  plantSound: {fileID: 8300000, guid: decdee522eae2d8498929345176ba3c4, type: 3}
+  waterSound: {fileID: 8300000, guid: bb1bc6611a3c3fe4d879f49ba0d3ca81, type: 3}
+  harvestSound: {fileID: 8300000, guid: decdee522eae2d8498929345176ba3c4, type: 3}
+  errorSound: {fileID: 8300000, guid: ecb51c17c17f0ec4c9c4635f602e321b, type: 3}
+  hoeVFX: {fileID: 4633050385151017684, guid: 41256ae9dbd3e8343b5dd83821a87695, type: 3}
+  plantVFX: {fileID: 1639746153607186285, guid: 4c1c64cdab2620b4480bfd73a996b9fb, type: 3}
+  waterVFX: {fileID: 5901119186122951324, guid: 50bdad727e3da4c41af61ef82889d13d, type: 3}
+  harvestVFX: {fileID: 3868513380847187267, guid: cd2ec00e752e5fb42b9fc3c6b7890ec1, type: 3}
 --- !u!65 &95350719
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -248,6 +257,102 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &95350723
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 95350717}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &267691293
 GameObject:
   m_ObjectHideFlags: 0
@@ -398,6 +503,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 379727470044122437, guid: deb47b6d6328ebf489faddb13da476a2, type: 3}
+      propertyPath: gameMinutesPerRealSecond
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 996783961056260819, guid: deb47b6d6328ebf489faddb13da476a2, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -598,7 +707,7 @@ GameObject:
   - component: {fileID: 1381586315}
   - component: {fileID: 1381586314}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: playerfarm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+
 
 public class CropEntity : MonoBehaviour, ITimeObserver
 {
@@ -61,6 +63,37 @@ public class CropEntity : MonoBehaviour, ITimeObserver
         {
             currentStageIndex++;
             UpdateVisuals();
+            // 新增：每次生长播放Q弹动画
+            if (currentModel != null)
+            {
+                StartCoroutine(GrowthBounceEffect(currentModel.transform));
+            }
+        }
+    }
+
+    // 增加第一人称视觉反馈：生长时有果冻弹跳效果
+    private IEnumerator GrowthBounceEffect(Transform targetTransform)
+    {
+        Vector3 originalScale = Vector3.one;
+        float timer = 0f;
+        float duration = 0.5f;
+
+        while (timer < duration)
+        {
+            // 【新增安全检测】如果模型在中途被收割或销毁了，立刻终止动画！
+            if (targetTransform == null) yield break;
+
+            timer += Time.deltaTime;
+            float scale = 1f + Mathf.Sin(timer / duration * Mathf.PI) * 0.4f;
+            targetTransform.localScale = originalScale * scale;
+
+            yield return null; // 等待下一帧
+        }
+
+        // 【新增安全检测】最后恢复大小时也检查一下
+        if (targetTransform != null)
+        {
+            targetTransform.localScale = originalScale;
         }
     }
 
@@ -92,4 +125,5 @@ public class CropEntity : MonoBehaviour, ITimeObserver
 
     public void OnHourChanged(int currentHour) { }
     public void OnDayPassed(int currentDay) { }
+
 }

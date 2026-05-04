@@ -5,12 +5,12 @@ public enum SoilState
 {
     Barren,    // 荒地
     Tilled,    // 耕地（干）
-    TilledWet, // 耕地（湿）
     Planted,   // 已播种（干）
     PlantedWet, // 已播种（湿）
     Dead       // 植物死亡
 }
 
+[RequireComponent(typeof(AudioSource))] // 自动添加音效组件
 public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
 {
     public SoilState currentState = SoilState.Barren;
@@ -18,73 +18,93 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     [Header("视觉材质")]
     public Material barrenMat;
     public Material tilledMat;
-    public Material tilledWetMat;
     public Material plantedMat;
     public Material plantedWetMat;
     public Material deadMat;
 
-    // 【修改点 1】：删除了写死的 public CropData selectedSeed;
-
+    [Header("基础预制体")]
     public GameObject cropEntityPrefab;
     private MeshRenderer meshRenderer;
     private CropEntity currentCropInstance;
 
+    [Header("📢 第一人称：音效反馈")]
+    private AudioSource audioSource;
+    public AudioClip hoeSound;      // 锄地音效
+    public AudioClip plantSound;    // 播种音效
+    public AudioClip waterSound;    // 浇水音效
+    public AudioClip harvestSound;  // 收获音效
+    public AudioClip errorSound;    // 错误/拒绝音效
+
+    [Header("✨ 第一人称：视觉特效 (把做好的粒子拖进来)")]
+    public GameObject hoeVFX;       // 飞溅的泥土
+    public GameObject plantVFX;     // 闪烁的种子光芒
+    public GameObject waterVFX;     // 水花四溅
+    public GameObject harvestVFX;   // 爆金币/大丰收的光效
+
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         UpdateVisuals();
         if (TimeManager.Instance != null) TimeManager.Instance.OnDayPassed += OnDayPassed;
     }
 
     void Update()
     {
-        // 开发者工具：按 I 键查看背包里到底有什么！
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            CheckBackpack();
-        }
-
-        // 开发者工具：按 G 键催熟（方便测试收割）
-        if (Input.GetKeyDown(KeyCode.G) && currentCropInstance != null)
-        {
-            currentCropInstance.Grow();
-            Debug.Log("【神仙水】植物被强制催熟了！");
-        }
+        if (Input.GetKeyDown(KeyCode.I)) CheckBackpack();
+        if (Input.GetKeyDown(KeyCode.G) && currentCropInstance != null) currentCropInstance.Grow();
     }
 
     // ==========================================
-    // 动作 1：按左键 / E 键 (锄地、播种、收割)
+    // 核心动作：统统只按 E 键，严格按顺序执行
+    // 顺序：荒地(锄地) -> 耕地(播种) -> 播种(浇水) -> 浇水后(等待成熟后收获)
     // ==========================================
     public void Interact()
     {
         switch (currentState)
         {
             case SoilState.Barren:
+                // 步骤 1：锄地
                 currentState = SoilState.Tilled;
-                Debug.Log("🟩【操作成功】你锄了地。下一步：请继续【左键】播种。");
+                PlayFeedback(hoeSound, hoeVFX);
+                Debug.Log("🟩【操作成功】你翻松了土地。下一步：按 E 播种。");
                 break;
 
             case SoilState.Tilled:
-            case SoilState.TilledWet:
-                PlantCrop();
+                // 步骤 2：播种
+                if (PlantCrop())
+                {
+                    PlayFeedback(plantSound, plantVFX);
+                }
+                else
+                {
+                    PlayFeedback(errorSound, null);
+                }
                 break;
 
             case SoilState.Planted:
-                // 没浇水，绝对不让收割，并骂玩家
-                Debug.Log("❌【操作错误】这颗种子快渴死了，它根本没在长！请先按【右键】浇水！");
+                // 步骤 3：浇水
+                currentState = SoilState.PlantedWet;
+                if (currentCropInstance != null) currentCropInstance.SetWatered(true);
+                PlayFeedback(waterSound, waterVFX);
+                Debug.Log("💧【操作成功】你给种子浇了水！它开始生长了！等待成熟按 E 收获。");
                 break;
 
             case SoilState.PlantedWet:
-                // 浇了水，检查熟了没
+                // 步骤 4：检查并收获
                 if (currentCropInstance != null)
                 {
                     if (currentCropInstance.IsMature())
                     {
                         Harvest(); // 熟了，收割！
+                        PlayFeedback(harvestSound, harvestVFX);
                     }
                     else
                     {
-                        Debug.Log("⏳【提示】植物正在健康生长中，还没熟，请耐心等待！(测试可按G键催熟)");
+                        PlayFeedback(errorSound, null);
+                        Debug.Log("⏳【提示】植物还没熟，耐心等它长大！(可按G催熟)");
                     }
                 }
                 break;
@@ -97,81 +117,56 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         UpdateVisuals();
     }
 
-    // ==========================================
-    // 动作 2：按右键 (浇水专用)
-    // ==========================================
-    public void WaterSoil()
+
+    // 播放音效和特效的统一方法
+    private void PlayFeedback(AudioClip clip, GameObject vfxPrefab)
     {
-        if (currentState == SoilState.Barren)
+        if (clip != null) audioSource.PlayOneShot(clip);
+        if (vfxPrefab != null)
         {
-            Debug.Log("❌【操作错误】这还是荒地！你浇什么水？请先按【左键】锄地！");
+            // 在土地上方偏高一点的位置生成特效，更适合第一人称观看
+            Vector3 spawnPos = transform.position + new Vector3(0, 0.5f, 0);
+            GameObject vfx = Instantiate(vfxPrefab, spawnPos, Quaternion.identity);
+            Destroy(vfx, 2f); // 2秒后自动销毁粒子
         }
-        else if (currentState == SoilState.Tilled)
-        {
-            currentState = SoilState.TilledWet;
-            Debug.Log("💧【操作成功】你提前润湿了土地。下一步：请按【左键】播种。");
-        }
-        else if (currentState == SoilState.Planted)
-        {
-            currentState = SoilState.PlantedWet;
-            if (currentCropInstance != null) currentCropInstance.SetWatered(true);
-            Debug.Log("💧【操作成功】你给植物浇了水！它现在开始生长了！");
-        }
-        else if (currentState == SoilState.TilledWet || currentState == SoilState.PlantedWet)
-        {
-            Debug.Log("⚠️【提示】地已经是湿的了，别浪费水啦！");
-        }
-        UpdateVisuals();
     }
 
-    // ==========================================
     // 内部逻辑：播种与收割
-    // ==========================================
-    private void PlantCrop()
+    private bool PlantCrop()
     {
-        // 【修改点 2】：不再用面板写死的种子，而是找 PlayerFarming 拿当前装备的种子！
         CropData seedToPlant = null;
-        if (PlayerFarming.Instance != null)
-        {
-            seedToPlant = PlayerFarming.Instance.currentEquippedCrop;
-        }
+        if (PlayerFarming.Instance != null) seedToPlant = PlayerFarming.Instance.currentEquippedCrop;
 
         if (seedToPlant == null || seedToPlant.seedItem == null)
         {
-            Debug.LogWarning("❌【操作错误】你手里没拿种子啊！请打开背包装备一个种子！(测试请按数字键1或2)");
-            return;
+            Debug.LogWarning("❌手里没拿种子！");
+            return false;
         }
 
-        // 向 C 的背包申请扣除种子
         if (InventoryManager.Instance.RemoveItem(seedToPlant.seedItem, 1) == false)
         {
-            Debug.Log("❌【警告】你背包里没有种子了！无法播种！");
-            return;
+            Debug.Log("❌背包里种子用光了！");
+            return false;
         }
 
-        bool wasWet = (currentState == SoilState.TilledWet);
-        currentState = wasWet ? SoilState.PlantedWet : SoilState.Planted;
+        currentState = SoilState.Planted; // 严格设定为未浇水状态
 
         GameObject newCropObj = Instantiate(cropEntityPrefab, transform.position + new Vector3(0, 0.1f, 0), Quaternion.identity);
-        newCropObj.transform.localScale = Vector3.one;
-
         currentCropInstance = newCropObj.GetComponent<CropEntity>();
-        currentCropInstance.Initialize(seedToPlant); // 这里传真实的动态种子
-        currentCropInstance.SetWatered(wasWet);
+        currentCropInstance.Initialize(seedToPlant);
+        currentCropInstance.SetWatered(false); // 强制未浇水
 
-        string waterTip = wasWet ? "地是湿的，它会立刻开始生长！" : "❌警告：地是干的！请立刻【右键】浇水，否则长不大！";
-        Debug.Log($"🌱【播种成功】种下了 {seedToPlant.cropName} (背包扣除1个)。{waterTip}");
+        Debug.Log($"🌱【播种成功】种下了 {seedToPlant.cropName}。请立刻按 E 浇水！");
+        return true;
     }
 
     private void Harvest()
     {
         if (currentCropInstance.cropData.harvestItem != null)
         {
-            // 给 C 的背包发货
             InventoryManager.Instance.AddItem(currentCropInstance.cropData.harvestItem, 1);
-            Debug.Log($"🌾【收割成功】获得了 1 个 [{currentCropInstance.cropData.harvestItem.itemName}]！已存入背包！(按 I 键可查账)");
+            Debug.Log($"🌾【收割成功】获得 [{currentCropInstance.cropData.harvestItem.itemName}]！");
         }
-
         Destroy(currentCropInstance.gameObject);
         currentCropInstance = null;
         currentState = SoilState.Barren;
@@ -184,9 +179,8 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         currentState = SoilState.Barren;
     }
 
-    // ==========================================
+
     // 查账工具：调用 C 同学的背包字典
-    // ==========================================
     private void CheckBackpack()
     {
         if (InventoryManager.Instance == null) return;
@@ -215,24 +209,26 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     {
         if (currentState == SoilState.Planted) { currentState = SoilState.Dead; if (currentCropInstance != null) currentCropInstance.Die(); }
         else if (currentState == SoilState.PlantedWet) { currentState = SoilState.Planted; if (currentCropInstance != null) currentCropInstance.SetWatered(false); }
-        else if (currentState == SoilState.TilledWet) currentState = SoilState.Tilled;
         UpdateVisuals();
     }
+
     public void OnMinuteChanged(int totalMinutes) { }
     public void OnHourChanged(int currentHour) { }
-    public string GetInteractPrompt() => "交互";
+    public string GetInteractPrompt() => "按 E 交互";
 
     private void UpdateVisuals()
     {
         if (meshRenderer == null) return;
         Material target = barrenMat;
-        switch (currentState) { case SoilState.Tilled: target = tilledMat; break; case SoilState.TilledWet: target = tilledWetMat; break; case SoilState.Planted: target = plantedMat; break; case SoilState.PlantedWet: target = plantedWetMat; break; case SoilState.Dead: target = deadMat; break; }
+        switch (currentState) { case SoilState.Tilled: target = tilledMat; break; case SoilState.Planted: target = plantedMat; break; case SoilState.PlantedWet: target = plantedWetMat; break; case SoilState.Dead: target = deadMat; break; }
         meshRenderer.material = target;
     }
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.E)) Interact();
-        if (Input.GetMouseButtonDown(1)) WaterSoil();
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Interact();
+        }
     }
 }
