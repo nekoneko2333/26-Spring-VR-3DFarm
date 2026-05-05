@@ -26,8 +26,9 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     public GameObject cropEntityPrefab;
     private MeshRenderer meshRenderer;
     private CropEntity currentCropInstance;
+    public GameObject highlightBox;
 
-    [Header("📢 第一人称：音效反馈")]
+    [Header("音效反馈")]
     private AudioSource audioSource;
     public AudioClip hoeSound;      // 锄地音效
     public AudioClip plantSound;    // 播种音效
@@ -35,7 +36,7 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
     public AudioClip harvestSound;  // 收获音效
     public AudioClip errorSound;    // 错误/拒绝音效
 
-    [Header("✨ 第一人称：视觉特效 (把做好的粒子拖进来)")]
+    [Header("视觉特效")]
     public GameObject hoeVFX;       // 飞溅的泥土
     public GameObject plantVFX;     // 闪烁的种子光芒
     public GameObject waterVFX;     // 水花四溅
@@ -223,12 +224,12 @@ public class SoilTile : MonoBehaviour, IInteractable, ITimeObserver
         switch (currentState) { case SoilState.Tilled: target = tilledMat; break; case SoilState.Planted: target = plantedMat; break; case SoilState.PlantedWet: target = plantedWetMat; break; case SoilState.Dead: target = deadMat; break; }
         meshRenderer.material = target;
     }
-
-    void OnMouseOver()
+    public void SetHighlight(bool isOn)
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (highlightBox != null)
         {
-            Interact();
+            highlightBox.SetActive(isOn);
         }
     }
+
 }
