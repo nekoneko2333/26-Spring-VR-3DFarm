@@ -215,7 +215,10 @@ public class InventoryUI : MonoBehaviour
                 break;
 
             case InventoryState.Gifting:
-                currentGiftCallback?.Invoke(selectedItem, 1); 
+                Action<ItemData, int> giftCallback = currentGiftCallback;
+                currentGiftCallback = null;
+                currentState = InventoryState.Normal;
+                giftCallback?.Invoke(selectedItem, 1); 
                 CloseInventory();
                 break;
         }
@@ -239,7 +242,12 @@ public class InventoryUI : MonoBehaviour
 
     public void CloseInventory()
     {
-        if (currentState == InventoryState.Gifting) currentGiftCallback?.Invoke(null, 0);
+        if (currentState == InventoryState.Gifting)
+        {
+            Action<ItemData, int> giftCallback = currentGiftCallback;
+            currentGiftCallback = null;
+            giftCallback?.Invoke(null, 0);
+        }
 
         currentState = InventoryState.Normal; 
         selectedItem = null;
