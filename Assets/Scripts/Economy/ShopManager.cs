@@ -21,9 +21,22 @@ public class ShopManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("场景中出现了第二个 ShopManager，正在销毁多余的！");
+            Destroy(this.gameObject);
+            return;
+        }
+        Instance = this;
     }
+
+private void OnDestroy()
+{
+    if (Instance == this)
+    {
+        Instance = null;
+    }
+}
 
     private void Start()
     {

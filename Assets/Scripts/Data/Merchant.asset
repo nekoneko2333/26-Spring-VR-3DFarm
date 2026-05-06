@@ -21,4 +21,4 @@ MonoBehaviour:
   giftRewardFriendship: 20
   loveGiftDialogue: "\u8C22\u8C22\u4F60!\u4F60\u600E\u4E48\u77E5\u9053\u6211\u559C\u6B22\u8FD9\u4E2A!"
   normalGiftDialogue: "\u8C22\u8C22\u4F60\u7684\u793C\u7269,\u6211\u4F1A\u597D\u597D\u73CD\u60DC\u7684."
-  friendshipPoints: 25
+  friendshipPoints: 0
