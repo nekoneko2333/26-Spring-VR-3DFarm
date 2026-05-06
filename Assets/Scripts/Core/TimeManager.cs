@@ -1,3 +1,6 @@
+﻿// Author: mcf
+// Central game-time controller. Broadcasts minute, hour, and day changes.
+
 using System;
 using UnityEngine;
 

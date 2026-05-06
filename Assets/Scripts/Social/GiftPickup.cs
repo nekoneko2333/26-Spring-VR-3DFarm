@@ -1,3 +1,6 @@
+﻿// Author: mcf
+// Pickable gift item that adds configured ItemData to the inventory.
+
 using UnityEngine;
 
 public class GiftPickup : MonoBehaviour, IInteractable

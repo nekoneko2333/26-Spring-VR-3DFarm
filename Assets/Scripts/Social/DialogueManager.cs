@@ -1,3 +1,6 @@
+﻿// Author: mcf
+// Controls NPC dialogue, merchant entry, gift handling, and interaction time cost.
+
 using System;
 using UnityEngine;
 
