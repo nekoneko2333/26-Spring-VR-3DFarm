@@ -3,20 +3,33 @@ using UnityEngine;
 public class PlayerInteractor : MonoBehaviour
 {
     [Header("交互设置")]
-    [Tooltip("射线发射的起点，第一人称必须拖拽主角头里的 Main Camera")]
     public Transform rayOrigin;
-    public float interactRange = 4f; // 稍微加长了一点点
+    public float interactRange = 3f;
+    public float checkRadius = 0.4f; // 增加判定体积
 
-    [Tooltip("非常重要！只检测这个图层的物体，避免射线打到自己或空气墙")]
+    [Tooltip("只检测选中的图层，请确保床和 Console 在此图层内")]
     public LayerMask interactableLayer;
 
-    // 缓存当前正在看的目标
     private IInteractable currentTarget;
-    // 缓存当前正在看的土地（专门用来高亮）
-    private SoilTile currentSoil;
+
+    void Start()
+    {
+        // 自动防御：如果未分配 rayOrigin，尝试绑定主摄像机
+        if (rayOrigin == null && Camera.main != null)
+        {
+            rayOrigin = Camera.main.transform;
+        }
+    }
 
     void Update()
     {
+        // 状态锁：睡觉或剧情中停止交互检测
+        if (GameManager.Instance != null && GameManager.Instance.currentState != GameManager.GameState.Playing)
+        {
+            ResetTarget();
+            return;
+        }
+
         CheckForInteractable();
 
         if (Input.GetKeyDown(KeyCode.E) && currentTarget != null)
@@ -27,45 +40,33 @@ public class PlayerInteractor : MonoBehaviour
 
     private void CheckForInteractable()
     {
-        // 从指定起点，向正前方发射射线
-        Debug.DrawRay(rayOrigin.position, rayOrigin.forward * interactRange, Color.red);
+        if (rayOrigin == null) return;
+
         Ray ray = new Ray(rayOrigin.position, rayOrigin.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, interactRange, interactableLayer))
+        // 使用 SphereCast 代替普通 Raycast 以获得更好的交互手感[cite: 2]
+        if (Physics.SphereCast(ray, checkRadius, out hit, interactRange, interactableLayer))
         {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-
-            if (interactable != null)
+            if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
                 if (currentTarget != interactable)
                 {
-                    // 1. 如果之前看了别的地，先把它的高亮关掉
-                    if (currentSoil != null) currentSoil.SetHighlight(false);
-
-                    // 2. 锁定新目标
                     currentTarget = interactable;
-                    currentSoil = hit.collider.GetComponent<SoilTile>();
-
-                    // 3. 打开新地块的高亮
-                    if (currentSoil != null) currentSoil.SetHighlight(true);
-
-                    Debug.Log("UI显示提示：" + currentTarget.GetInteractPrompt());
+                    Debug.Log("提示：" + currentTarget.GetInteractPrompt());
                 }
+                return;
             }
         }
-        else
-        {
-            // 如果射线没打中任何东西，或者视线移开了
-            if (currentTarget != null)
-            {
-                // 关掉高亮
-                if (currentSoil != null) currentSoil.SetHighlight(false);
+        ResetTarget();
+    }
 
-                currentTarget = null;
-                currentSoil = null;
-                Debug.Log("移开视线，隐藏 UI 提示");
-            }
+    private void ResetTarget()
+    {
+        if (currentTarget != null)
+        {
+            currentTarget = null;
+            Debug.Log("移开视线，隐藏 UI 提示");
         }
     }
 }
