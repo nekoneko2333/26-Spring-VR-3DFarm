@@ -18,3 +18,4 @@ MonoBehaviour:
   hungerRate: 0
   productPrefab: {fileID: 8730609041224987953, guid: 07b85ff43fad3f4448e8f28d791992b5, type: 3}
   produceInterval: 5
+  productItem: {fileID: 11400000, guid: 13099abc418d9564ab255853534aad85, type: 2}

@@ -3,7 +3,7 @@ using UnityEngine;
 public class AnimalEntity : MonoBehaviour
 {
     [Header("关联数据资源")]
-    public AnimalData data; // 拖入你创建的 CowData 资产
+    public AnimalData data;
 
     [Header("实时状态")]
     public float currentTimer;
@@ -14,7 +14,6 @@ public class AnimalEntity : MonoBehaviour
 
     void Start()
     {
-        // 初始化：从数据模板中读取生长时间
         if (data != null)
         {
             currentTimer = data.growthTime;
@@ -37,7 +36,7 @@ public class AnimalEntity : MonoBehaviour
         }
 
         // 2. 处理生长逻辑
-        if (!isMature && currentHunger > 20f) // 只有不饿肚子时才生长
+        if (!isMature && currentHunger > 20f)
         {
             currentTimer -= Time.deltaTime;
             if (currentTimer <= 0)
@@ -53,30 +52,36 @@ public class AnimalEntity : MonoBehaviour
             if (produceTimer <= 0)
             {
                 ProduceItem();
-                produceTimer = data.produceInterval; // 重置产出计时
+                produceTimer = data.produceInterval;
             }
         }
     }
 
-    // 成年时的逻辑
     void OnMature()
     {
         isMature = true;
         Debug.Log($"{data.animalName} 已成年！开始准备产出。");
-
-        // 视觉反馈：比如让模型稍微变大一点
         transform.localScale *= 1.2f;
     }
 
-    // 产生物品的逻辑
+    // 修改后的产生物品逻辑
     void ProduceItem()
     {
-        if (data.productPrefab != null)
+        // 如果没有配置产出物品（如小羊），直接返回，不再报 Warning
+        if (data == null || data.productItem == null)
         {
-            // 在动物位置稍微往上一点的地方生成产出物（如牛奶瓶）
-            Vector3 spawnPos = transform.position + Vector3.up * 0.5f;
-            Instantiate(data.productPrefab, spawnPos, Quaternion.identity);
-            Debug.Log($"{data.animalName} 产出了一个物品！");
+            return;
+        }
+
+        // 只有在配置了 ItemData 的情况下才尝试存入背包
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.AddItem(data.productItem, 1);
+            Debug.Log($"[牧场系统] {data.animalName} 产出了 {data.productItem.name}，已直接存入背包！");
+        }
+        else
+        {
+            Debug.LogError("场景中缺少 InventoryManager 实例，产出无法存入背包！");
         }
     }
 }

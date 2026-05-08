@@ -18,3 +18,4 @@ MonoBehaviour:
   hungerRate: 0
   productPrefab: {fileID: 0}
   produceInterval: 5
+  productItem: {fileID: 0}
