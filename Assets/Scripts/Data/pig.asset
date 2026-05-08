@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
   m_Name: pig
   m_EditorClassIdentifier: 
-  itemID: 
+  itemID: "\u732A"
   itemName: "\u732A"
   description: 
   itemIcon: {fileID: 21300000, guid: aade58619c9df8d418d3e1b0775d91e4, type: 3}

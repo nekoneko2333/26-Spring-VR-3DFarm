@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
   m_Name: RadishFruit
   m_EditorClassIdentifier: 
-  itemID: 
+  itemID: "\u6210\u719F\u841D\u535C"
   itemName: "\u6210\u719F\u841D\u535C"
   description: 
   itemIcon: {fileID: 21300000, guid: 2e4fd54df5d1785439606db7bab328ac, type: 3}
@@ -21,3 +21,4 @@ MonoBehaviour:
   buyPrice: 40
   sellPrice: 50
   itemType: 1
+  animalData: {fileID: 0}

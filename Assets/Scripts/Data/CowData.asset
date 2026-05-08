@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animalName: "\u5976\u725B"
   modelPrefab: {fileID: 3461258220474812892, guid: 06ebdf2c02307b14dba3145d46409fdd, type: 3}
-  growthTime: 10
+  growthTime: 20
   hungerRate: 0
   productPrefab: {fileID: 8730609041224987953, guid: 07b85ff43fad3f4448e8f28d791992b5, type: 3}
-  produceInterval: 5
+  produceInterval: 30
   productItem: {fileID: 11400000, guid: 13099abc418d9564ab255853534aad85, type: 2}
+  animalItem: {fileID: 0}

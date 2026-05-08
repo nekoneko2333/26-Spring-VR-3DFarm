@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.AI; // 必须引用寻路命名空间
+using UnityEngine.AI;
 
 public class AnimalAI : MonoBehaviour
 {
@@ -7,8 +7,8 @@ public class AnimalAI : MonoBehaviour
     private float timer;
 
     [Header("游走设置")]
-    public float walkRadius = 10f; // 随机走动的范围
-    public float idleTime = 5f;    // 停顿时间
+    public float walkRadius = 10f;
+    public float idleTime = 5f;
 
     void Start()
     {
@@ -20,22 +20,24 @@ public class AnimalAI : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-        // 如果停留时间到了，且奶牛现在没在走路（到达了目的地）
-        if (timer >= idleTime && !agent.pathPending && agent.remainingDistance < 0.5f)
+        // 【关键修复】：增加 agent.isOnNavMesh 检查，防止报错
+        if (agent != null && agent.isOnNavMesh && agent.isActiveAndEnabled)
         {
-            SetNewRandomDestination();
-            timer = 0;
+            // 只有当路径不再计算中，且距离目的地很近时，才重新寻找新位置
+            if (timer >= idleTime && !agent.pathPending && agent.remainingDistance < 0.5f)
+            {
+                SetNewRandomDestination();
+                timer = 0;
+            }
         }
     }
 
     void SetNewRandomDestination()
     {
-        // 在球体内找随机点
         Vector3 randomDirection = Random.insideUnitSphere * walkRadius;
         randomDirection += transform.position;
 
         NavMeshHit hit;
-        // 关键：将随机点映射到刚才生成的“蓝色区域”上
         if (NavMesh.SamplePosition(randomDirection, out hit, walkRadius, 1))
         {
             agent.SetDestination(hit.position);

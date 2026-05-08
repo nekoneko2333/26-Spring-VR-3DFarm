@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
   m_Name: milk
   m_EditorClassIdentifier: 
-  itemID: 
+  itemID: "\u725B\u5976"
   itemName: "\u725B\u5976"
   description: 
   itemIcon: {fileID: 21300000, guid: 93b87f8960aad0d43aa8c9de8439171a, type: 3}

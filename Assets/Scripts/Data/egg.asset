@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
   m_Name: egg
   m_EditorClassIdentifier: 
-  itemID: 
+  itemID: "\u9E21\u86CB"
   itemName: "\u9E21\u86CB"
   description: 
   itemIcon: {fileID: 21300000, guid: 7a1a48f9305fbdd4abdc07e9d054b250, type: 3}

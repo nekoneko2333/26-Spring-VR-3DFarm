@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
   m_Name: CabbageSeed
   m_EditorClassIdentifier: 
-  itemID: 
+  itemID: "\u767D\u83DC\u79CD\u5B50"
   itemName: "\u767D\u83DC\u79CD\u5B50"
   description: 
   itemIcon: {fileID: 21300000, guid: c08c5c43f02c33d4087351a99fceda0a, type: 3}
@@ -21,3 +21,4 @@ MonoBehaviour:
   buyPrice: 10
   sellPrice: 10
   itemType: 0
+  animalData: {fileID: 0}
