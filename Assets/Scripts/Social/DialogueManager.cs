@@ -11,9 +11,11 @@ public class DialogueManager : MonoBehaviour
     public static DialogueManager Instance { get; private set; }
     public bool isConversing { get; private set; }
 
-    private const int ShopOption = 1;
-    private const int GiftOption = 2;
-    private const int LeaveOption = 3;
+    private const int MerchantShopOption = 1;
+    private const int MerchantGiftOption = 2;
+    private const int MerchantLeaveOption = 3;
+    private const int NormalGiftOption = 1;
+    private const int NormalLeaveOption = 2;
 
     private Action onDialogueEndCallback;
     private DialogueState currentState;
@@ -89,19 +91,44 @@ public class DialogueManager : MonoBehaviour
 
     public void OnClickOption(int index)
     {
-        if (index == ShopOption)
+        if (currentIsMerchant)
         {
-            if (currentIsMerchant) OpenShopLogic();
+            HandleMerchantOption(index);
             return;
         }
 
-        if (index == GiftOption)
+        HandleNormalOption(index);
+    }
+
+    private void HandleMerchantOption(int index)
+    {
+        if (index == MerchantShopOption)
+        {
+            OpenShopLogic();
+            return;
+        }
+
+        if (index == MerchantGiftOption)
         {
             StartGifting();
             return;
         }
 
-        if (index == LeaveOption)
+        if (index == MerchantLeaveOption)
+        {
+            EndDialogue();
+        }
+    }
+
+    private void HandleNormalOption(int index)
+    {
+        if (index == NormalGiftOption)
+        {
+            StartGifting();
+            return;
+        }
+
+        if (index == NormalLeaveOption)
         {
             EndDialogue();
         }

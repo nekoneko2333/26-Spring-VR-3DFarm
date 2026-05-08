@@ -30,10 +30,6 @@ public class DialogueUI : MonoBehaviour
     {
         HideDialogue();
         HideOptions();
-
-        if (shopButton != null) shopButton.onClick.AddListener(() => DialogueManager.Instance.OnClickOption(1));
-        if (giftButton != null) giftButton.onClick.AddListener(() => DialogueManager.Instance.OnClickOption(2));
-        if (leaveButton != null) leaveButton.onClick.AddListener(() => DialogueManager.Instance.OnClickOption(3));
     }
 
     public void ShowDialogue(string npcName, string content)
@@ -56,11 +52,24 @@ public class DialogueUI : MonoBehaviour
     public void ShowOptions(bool isMerchant)
     {
         optionsPanel.SetActive(true);
+
         if (shopButton != null) shopButton.gameObject.SetActive(isMerchant);
+
+        BindOptionButton(shopButton, 1);
+        BindOptionButton(giftButton, isMerchant ? 2 : 1);
+        BindOptionButton(leaveButton, isMerchant ? 3 : 2);
     }
 
     public void HideOptions()
     {
         if (optionsPanel != null) optionsPanel.SetActive(false);
+    }
+
+    private void BindOptionButton(Button button, int optionIndex)
+    {
+        if (button == null) return;
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => DialogueManager.Instance.OnClickOption(optionIndex));
     }
 }
