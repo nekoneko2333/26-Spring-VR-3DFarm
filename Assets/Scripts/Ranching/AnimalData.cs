@@ -12,6 +12,10 @@ public class AnimalData : ScriptableObject
     public float hungerRate;       // 饥饿下降速率
 
     [Header("产出属性")]
-    public GameObject productPrefab; // 产出的东西（比如牛奶、鸡蛋）
+    // 保留 prefab 供可选视觉效果使用，但逻辑上主要使用 productItem
+    public GameObject productPrefab;
     public float produceInterval;    // 产出间隔时间
+
+    [Header("背包系统关联")]
+    public ItemData productItem;     // 对应 InventoryManager 需要的物品数据资源
 }

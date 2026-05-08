@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
+  m_Name: egg
+  m_EditorClassIdentifier: 
+  itemID: 
+  itemName: "\u9E21\u86CB"
+  description: 
+  itemIcon: {fileID: 21300000, guid: 7a1a48f9305fbdd4abdc07e9d054b250, type: 3}
+  itemPrefab: {fileID: 7764043627815791974, guid: dafcca3637a7ada48a2589f3e3eb612c, type: 3}
+  isSellable: 1
+  buyPrice: 0
+  sellPrice: 10
+  itemType: 1
+  animalData: {fileID: 0}

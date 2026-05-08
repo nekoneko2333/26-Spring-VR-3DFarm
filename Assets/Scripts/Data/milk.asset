@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
+  m_Name: milk
+  m_EditorClassIdentifier: 
+  itemID: 
+  itemName: "\u725B\u5976"
+  description: 
+  itemIcon: {fileID: 21300000, guid: 93b87f8960aad0d43aa8c9de8439171a, type: 3}
+  itemPrefab: {fileID: 8730609041224987953, guid: 07b85ff43fad3f4448e8f28d791992b5, type: 3}
+  isSellable: 1
+  buyPrice: 0
+  sellPrice: 20
+  itemType: 1
+  animalData: {fileID: 0}
