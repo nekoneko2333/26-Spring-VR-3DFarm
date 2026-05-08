@@ -163,12 +163,13 @@ public class InventoryUI : MonoBehaviour
         switch (currentState)
         {
             case InventoryState.Normal: 
-                // 1. 正常打开背包：只能装备种子，或随时卖出农产品
+                // 1. 正常打开背包：只能装备种子
                 if (selectedItem.itemType == ItemType.Seed) 
                 {
                     actionButtonText.text = "装备种子";
                 }
-                else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
+                // 🚀 【修改点 1】：把 Animal 加到了这里，和 Crop 一起享受“卖出”待遇
+                else if ((selectedItem.itemType == ItemType.Crop || selectedItem.itemType == ItemType.Animal) && selectedItem.isSellable)
                 {
                     actionButtonText.text = $"卖出 (+{selectedItem.sellPrice}G)";
                 }
@@ -182,7 +183,6 @@ public class InventoryUI : MonoBehaviour
 
             case InventoryState.Gifting: 
                 // 2. 被同学 D 的 NPC 呼出时：只能送出礼物/农产品
-                // (你可以根据你们定义的礼物 ItemType 调整这里，假设礼物是 Material 或 Crop)
                 if (selectedItem.itemType == ItemType.Material || selectedItem.itemType == ItemType.Crop) 
                 {
                     actionButtonText.text = "确认赠送";
@@ -208,7 +208,8 @@ public class InventoryUI : MonoBehaviour
                     if (PlayerFarming.Instance != null) PlayerFarming.Instance.EquipItem(selectedItem);
                     CloseInventory();
                 }
-                else if (selectedItem.itemType == ItemType.Crop && selectedItem.isSellable)
+                // 🚀 【修改点 2】：真正点击卖出时，也把 Animal 算进去
+                else if ((selectedItem.itemType == ItemType.Crop || selectedItem.itemType == ItemType.Animal) && selectedItem.isSellable)
                 {
                     SellItemProcess(selectedItem);
                 }

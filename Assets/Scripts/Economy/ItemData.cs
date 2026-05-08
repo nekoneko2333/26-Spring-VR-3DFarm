@@ -21,6 +21,9 @@ public class ItemData : ScriptableObject
 
     [Header("物品类型")]
     public ItemType itemType;    // 使用枚举分类，方便商店和背包做筛选
+    [Header("【仅动物专用】")]
+    [Tooltip("如果类型是Animal，请把A创建的AnimalData拖入此槽位")]
+    public AnimalData animalData;
 }
 
 // 定义物品类型的枚举

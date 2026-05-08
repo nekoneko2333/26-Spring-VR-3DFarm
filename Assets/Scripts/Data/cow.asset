@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7f70e5d9b632cc45b0e1c0551640898, type: 3}
+  m_Name: cow
+  m_EditorClassIdentifier: 
+  itemID: 
+  itemName: "\u5976\u725B"
+  description: 
+  itemIcon: {fileID: 21300000, guid: 3bcc1aac209a4df46b45f26e65625cc3, type: 3}
+  itemPrefab: {fileID: 3461258220474812892, guid: 06ebdf2c02307b14dba3145d46409fdd, type: 3}
+  isSellable: 1
+  buyPrice: 300
+  sellPrice: 0
+  itemType: 2
+  animalData: {fileID: 11400000, guid: de11116fe45848645874b509345aa8a2, type: 2}
