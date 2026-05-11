@@ -426,7 +426,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startButton: {fileID: 211298401}
-  firstSceneName: UI
+  firstSceneName: farm
 --- !u!1 &1531240906
 GameObject:
   m_ObjectHideFlags: 0

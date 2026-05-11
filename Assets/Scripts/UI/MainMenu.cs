@@ -8,7 +8,7 @@ public class MainMenuUI : MonoBehaviour
     public Button startButton; // 在面板里拖入你的“开始游戏”按钮
 
     [Header("场景对接配置 (留给同学A填写的接口)")]
-    public string firstSceneName = "UI"; 
+    public string firstSceneName = "farm"; 
 
     private void Start()
     {
